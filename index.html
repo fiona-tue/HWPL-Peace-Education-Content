@@ -560,6 +560,10 @@ nav {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
         Lesson Prep Wizard
       </a>
+      <a onclick="showReflectionSheets()" class="home-nav-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Reflection Sheets
+      </a>
       <a onclick="showEvaluation()" class="home-nav-pill">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         Evaluation
@@ -5832,6 +5836,7 @@ const WIZ = {
 };
 
 function showWizard() { showPage('wizard-page', 'Overview'); wizUpdateProgress(); }
+function showReflectionSheets() { showPage('reflection-sheets-page', 'Overview'); }
 
 function wizUpdateProgress() {
   const pct = Math.round(((WIZ.step - 1) / (WIZ.totalSteps - 1)) * 100);
@@ -6067,3 +6072,499 @@ function wizBuildSummary() {
 
 </body>
 </html>
+
+<!-- ══════════════════════ REFLECTION SHEETS PAGE ══════════════════════ -->
+<style>
+#reflection-sheets-page .refl-shell{max-width:780px;margin:0 auto;padding:48px 40px 100px;position:relative;z-index:1}
+#reflection-sheets-page .refl-pg-header{margin-bottom:36px}
+#reflection-sheets-page .refl-pg-eyebrow{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+#reflection-sheets-page .refl-pg-title{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,4vw,42px);font-weight:300;color:var(--ink);line-height:1.2;letter-spacing:-0.3px;margin-bottom:8px}
+#reflection-sheets-page .refl-pg-title em{font-style:italic;color:var(--sky)}
+#reflection-sheets-page .refl-pg-sub{font-size:14px;font-weight:300;color:var(--ink-soft);line-height:1.7;max-width:520px}
+.refl-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:32px;padding:14px 18px;background:rgba(255,255,255,0.75);border:1px solid var(--divider);border-radius:10px}
+.refl-toolbar-group{display:flex;align-items:center;gap:6px}
+.refl-toolbar-sep{width:1px;height:24px;background:var(--divider);margin:0 6px}
+.refl-tb-label{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft);margin-right:4px;white-space:nowrap}
+.rtb-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(75,175,214,0.25);background:transparent;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;color:var(--ink-mid);cursor:pointer;transition:all 0.18s;white-space:nowrap}
+.rtb-btn:hover{border-color:var(--sky);color:var(--sky)}
+.rtb-btn.active{background:var(--sky);border-color:var(--sky);color:white}
+.rtb-btn.lang-btn.active{background:var(--gold);border-color:var(--gold);color:white}
+.rtb-btn.les-btn.active{background:var(--ink);border-color:var(--ink);color:white}
+.refl-print-btn{margin-left:auto;padding:7px 18px;border-radius:20px;border:none;background:var(--sky);font-family:'Jost',sans-serif;font-size:12px;font-weight:500;color:white;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.18s;white-space:nowrap}
+.refl-print-btn:hover{background:#3a9dc4}
+.rs-sheet{display:none;background:white;border-radius:4px;box-shadow:0 2px 24px rgba(26,42,53,0.10),0 1px 4px rgba(26,42,53,0.06);overflow:hidden}
+.rs-sheet.rs-active{display:block}
+.rs-hdr{background:linear-gradient(135deg,#1A2A35 0%,#2d4a5a 100%);padding:30px 40px 26px;position:relative;overflow:hidden}
+.rs-hdr::after{content:'';position:absolute;right:-40px;bottom:-60px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(75,175,214,0.12)}
+.rs-hdr::before{content:'';position:absolute;right:20px;bottom:-20px;width:120px;height:120px;border-radius:50%;border:1px solid rgba(75,175,214,0.08)}
+.rs-hdr-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.rs-lesson-tag{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--sky-light);opacity:0.85}
+.rs-audience-tag{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold-light);background:rgba(201,168,76,0.15);padding:4px 12px;border-radius:20px;border:1px solid rgba(201,168,76,0.3)}
+.rs-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:white;line-height:1.25;letter-spacing:-0.3px;margin-bottom:5px}
+.rs-title em{font-style:italic;color:var(--sky-light)}
+.rs-subtitle{font-size:11px;font-weight:300;color:rgba(255,255,255,0.45);letter-spacing:0.5px}
+.rs-name-row{display:flex;gap:20px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1)}
+.rs-field{display:flex;flex-direction:column;gap:5px;flex:1}
+.rs-field label{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.38)}
+.rs-field-line{height:1px;background:rgba(255,255,255,0.22);margin-top:4px}
+.rs-sheet[data-audience="youth"] .rs-hdr{background:linear-gradient(135deg,#1a2f1e 0%,#2d4a35 100%)}
+.rs-sheet[data-audience="youth"] .rs-audience-tag{color:#9fd896;background:rgba(100,180,80,0.15);border-color:rgba(100,180,80,0.3)}
+.rs-body{padding:32px 40px 36px}
+.rs-sec-label{font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.rs-sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-light),transparent)}
+.rs-anchor{background:linear-gradient(135deg,rgba(75,175,214,0.05),rgba(168,197,160,0.07));border:1px solid rgba(75,175,214,0.18);border-left:3px solid var(--sky);border-radius:0 8px 8px 0;padding:18px 22px;margin-bottom:28px;position:relative}
+.rs-anchor-qmark{font-family:'Cormorant Garamond',serif;font-size:70px;color:rgba(75,175,214,0.09);line-height:0.8;position:absolute;top:8px;left:10px;pointer-events:none}
+.rs-anchor-text{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;font-style:italic;color:var(--ink);line-height:1.65;position:relative;z-index:1;padding-left:16px}
+.rs-anchor-src{font-size:11px;font-weight:500;color:var(--sky);letter-spacing:1px;margin-top:7px;padding-left:16px}
+.rs-anchor-note{font-size:12px;color:var(--ink-soft);line-height:1.6;padding-left:16px;margin-top:8px;font-style:italic}
+.rs-refl-intro{font-size:12px;color:var(--ink-soft);line-height:1.65;margin-bottom:18px;padding:9px 13px;background:rgba(201,168,76,0.05);border-radius:6px;border-left:2px solid var(--gold-light)}
+.rs-q{margin-bottom:20px}
+.rs-q-num{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:var(--sky-pale);border:1px solid var(--sky-light);font-size:10px;font-weight:600;color:var(--sky);margin-right:7px;flex-shrink:0;vertical-align:middle}
+.rs-q-text{font-size:13px;font-weight:500;color:var(--ink);line-height:1.5;margin-bottom:6px}
+.rs-q-layer{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px;margin-left:26px}
+.rs-lines{margin-left:26px;display:flex;flex-direction:column;gap:9px}
+.rs-line{height:1px;background:var(--divider)}
+.rs-divider{height:1px;background:var(--divider);margin:22px 0}
+.rs-self{background:rgba(168,197,160,0.08);border:1px solid rgba(168,197,160,0.35);border-radius:8px;padding:20px 22px;margin-bottom:26px}
+.rs-self-intro{font-size:12px;color:var(--ink-mid);line-height:1.65;margin-bottom:15px}
+.rs-scale-hdr{display:flex;justify-content:flex-end;gap:7px;margin-bottom:5px}
+.rs-shdr-lbl{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);width:21px;text-align:center}
+.rs-scale-row{display:flex;flex-direction:column;gap:12px}
+.rs-si{display:flex;align-items:center;gap:14px}
+.rs-si-text{font-size:12px;color:var(--ink-mid);line-height:1.45;flex:1}
+.rs-scale{display:flex;gap:7px;flex-shrink:0}
+.rs-circle{width:21px;height:21px;border-radius:50%;border:1px solid rgba(75,175,214,0.35);background:white;cursor:pointer;transition:all 0.15s}
+.rs-circle:hover{border-color:var(--sky);background:rgba(75,175,214,0.1)}
+.rs-circle.rs-filled{background:var(--sky);border-color:var(--sky)}
+.rs-sheet[data-audience="youth"] .rs-circle.rs-filled{background:#4a9b4a;border-color:#4a9b4a}
+.rs-self-note-row{margin-top:14px;padding-top:12px;border-top:1px solid rgba(168,197,160,0.3)}
+.rs-action{background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:20px 22px;margin-bottom:24px}
+.rs-action-intro{font-size:12px;color:var(--ink-mid);line-height:1.65;margin-bottom:14px}
+.rs-action-prompt{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.rs-action-sub{font-size:11px;color:var(--ink-soft);font-style:italic;margin-bottom:9px}
+.rs-alines{display:flex;flex-direction:column;gap:9px}
+.rs-aline{height:1px;background:rgba(201,168,76,0.3)}
+.rs-commit{background:linear-gradient(135deg,rgba(26,42,53,0.03),rgba(75,175,214,0.04));border:1px solid var(--divider);border-radius:8px;padding:22px 26px;margin-bottom:18px}
+.rs-commit-intro{font-size:12px;color:var(--ink-mid);line-height:1.65;margin-bottom:18px}
+.rs-commit-sentence{font-size:13px;font-weight:400;color:var(--ink);line-height:2.2;display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;margin-bottom:16px}
+.rs-commit-sentence em{font-style:normal;color:var(--sky);font-weight:500}
+.rs-fill{border:none;border-bottom:1.5px solid var(--sky);background:transparent;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);outline:none;min-width:100px;padding:2px 4px;flex:1}
+.rs-sheet[data-audience="youth"] .rs-fill{border-bottom-color:#4a9b4a}
+.rs-sign-row{display:flex;gap:20px}
+.rs-sign-field{flex:1;display:flex;flex-direction:column;gap:5px}
+.rs-sign-field label{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft)}
+.rs-sign-line{height:1px;background:var(--divider)}
+.rs-privacy-note{font-size:10px;color:var(--ink-soft);line-height:1.7;text-align:center;padding:0 16px}
+.rs-footer{background:rgba(26,42,53,0.03);border-top:1px solid var(--divider);padding:12px 40px;display:flex;align-items:center;justify-content:space-between}
+.rs-footer-hwpl{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;color:var(--ink-soft);letter-spacing:2px}
+.rs-footer-note{font-size:10px;color:var(--ink-soft);letter-spacing:0.5px}
+@media(max-width:600px){#reflection-sheets-page .refl-shell{padding:32px 16px 80px}.rs-body{padding:24px 20px 28px}.rs-hdr{padding:24px 20px 20px}.rs-name-row{flex-direction:column;gap:12px}.rs-footer{flex-direction:column;gap:4px;text-align:center}}
+@media print{body{background:white}#reflection-sheets-page .refl-toolbar,#reflection-sheets-page .refl-pg-header{display:none}.rs-sheet{box-shadow:none;display:none}.rs-sheet.rs-active{display:block}.rs-circle,.rs-hdr,.rs-anchor,.rs-self,.rs-action,.rs-commit{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+
+<div class="page" id="reflection-sheets-page">
+  <div class="bg-pattern"></div>
+  <div class="refl-shell">
+    <div class="refl-pg-header fade-up">
+      <div class="refl-pg-eyebrow" id="rs-pg-eyebrow">Personal Reflection</div>
+      <h1 class="refl-pg-title">Reflection <em>&amp; Commitment</em> Sheets</h1>
+      <p class="refl-pg-sub" id="rs-pg-sub">A personal document to take home after each lesson — with reflection questions, honest self-assessment, and one concrete commitment to action.</p>
+    </div>
+    <div class="refl-toolbar fade-up">
+      <div class="refl-toolbar-group">
+        <span class="refl-tb-label" id="rs-lbl-lang">Language</span>
+        <button class="rtb-btn lang-btn active" onclick="rsSetLang('en',this)">EN</button>
+        <button class="rtb-btn lang-btn" onclick="rsSetLang('fr',this)">FR</button>
+      </div>
+      <div class="refl-toolbar-sep"></div>
+      <div class="refl-toolbar-group">
+        <span class="refl-tb-label" id="rs-lbl-audience">Audience</span>
+        <button class="rtb-btn active" onclick="rsSetAudience('diplomat',this)" id="rs-aud-diplomat">Diplomats</button>
+        <button class="rtb-btn" onclick="rsSetAudience('youth',this)" id="rs-aud-youth">Youth</button>
+      </div>
+      <div class="refl-toolbar-sep"></div>
+      <div class="refl-toolbar-group">
+        <span class="refl-tb-label" id="rs-lbl-lesson">Lesson</span>
+        <button class="rtb-btn les-btn active" onclick="rsSetLesson('1',this)">L1</button>
+        <button class="rtb-btn les-btn" onclick="rsSetLesson('2',this)">L2</button>
+        <button class="rtb-btn les-btn" onclick="rsSetLesson('3',this)">L3</button>
+      </div>
+      <button class="refl-print-btn" onclick="window.print()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        <span id="rs-print-lbl">Print</span>
+      </button>
+    </div>
+
+<div class="rs-sheet rs-active" id="rs-en-1-diplomat" data-lang="en" data-lesson="1" data-audience="diplomat">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Lesson 01 · Peace Education</span><span class="rs-audience-tag">Diplomats &amp; Delegates</span></div>
+    <h2 class="rs-title">The Original State of <em>All Creation</em></h2>
+    <p class="rs-subtitle">Personal reflection &amp; commitment — take this with you</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Name</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>Country / Mission</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">A moment to sit with</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">Nature survives not by making everything identical — but by aligning different strengths toward a shared purpose. This is harmony. It is the condition the international community also seeks.</div><div class="rs-anchor-src">Lesson 1 — Diversity, Collaboration, Harmony</div><div class="rs-anchor-note">Read this once, set it down, and notice what it stirs in you before answering anything.</div></div>
+    <div class="rs-sec-label">Reflection</div>
+    <div class="rs-refl-intro">These questions have no right answers. Move through them in order — noticing, then connecting, then imagining.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> When have you seen <strong>diversity genuinely strengthen</strong> a process or negotiation — rather than complicate it? What made the difference?</div><div class="rs-q-layer">Noticing · looking back honestly</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Think of a current situation where <strong>harmony feels distant</strong>. What is one thing that would need to shift for alignment to become possible?</div><div class="rs-q-layer">Connecting · bringing the lesson into the present</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> If young diplomats were shaped by <strong>diversity as strength, collaboration as duty, harmony as shared direction</strong> — how would the international environment look different in 20 years?</div><div class="rs-q-layer">Imagining · the longer arc</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Where I am honestly</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">This is a mirror, not a test. Mark where you genuinely are right now.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarely</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Often</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">When I encounter a colleague with a very different cultural approach, my first instinct is curiosity rather than frustration.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">In multilateral settings, I actively create space for less prominent voices — not only the loudest ones.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I feel my individual actions genuinely contribute to something larger than the immediate negotiation.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I can hold both my national mandate and my personal belief in cooperation — without inner conflict.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">Looking at these honestly — what do you notice?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">One thing I will do differently</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">The smallest real change is worth more than the grandest intention. Choose one thing — specific enough to be recognisable when you do it.</div>
+      <div class="rs-action-prompt">This week, in my work or relationships, I will:</div>
+      <div class="rs-action-sub">Name the context, the person, the moment.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      <div style="margin-top:16px"><div class="rs-action-prompt">What might make this difficult?</div><div class="rs-alines" style="margin-top:8px"><div class="rs-aline"></div><div class="rs-aline"></div></div></div>
+    </div>
+    <div class="rs-sec-label">My commitment</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">A commitment named and written becomes more real than one held privately.</div>
+      <div class="rs-commit-sentence"><em>I believe that</em> <input class="rs-fill" type="text" placeholder="write freely…"> <em>and because of that,</em> <input class="rs-fill" type="text" placeholder="what follows for you personally…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Signature</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">This reflection is personal and private. Its purpose is simply to let today's lesson settle into your own thinking and way of working.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Peace Education · Lesson 1 · Diplomat</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+<div class="rs-sheet " id="rs-fr-1-diplomat" data-lang="fr" data-lesson="1" data-audience="diplomat">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Leçon 01 · Éducation à la Paix</span><span class="rs-audience-tag">Diplomates &amp; Délégués</span></div>
+    <h2 class="rs-title">L'État Originel de <em>Toute Création</em></h2>
+    <p class="rs-subtitle">Réflexion personnelle &amp; engagement — à emporter avec vous</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Nom</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>Pays / Mission</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">Un moment pour s'arrêter</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">La nature ne survit pas en rendant tout identique — mais en alignant des forces différentes vers un but commun. C'est cela l'harmonie. C'est aussi la condition que la communauté internationale recherche.</div><div class="rs-anchor-src">Leçon 1 — Diversité, Collaboration, Harmonie</div><div class="rs-anchor-note">Lisez ceci une fois, posez-le, et observez ce que cela éveille en vous avant de répondre à quoi que ce soit.</div></div>
+    <div class="rs-sec-label">Réflexion</div>
+    <div class="rs-refl-intro">Ces questions n'ont pas de bonne réponse. Parcourez-les dans l'ordre — observer, relier, imaginer.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> Dans votre expérience de diplomate, quand avez-vous vu la <strong>diversité renforcer véritablement</strong> un processus ou une négociation — plutôt que de le compliquer ? Qu'est-ce qui a fait la différence ?</div><div class="rs-q-layer">Observer · regarder honnêtement en arrière</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Pensez à une situation actuelle où <strong>l'harmonie semble lointaine</strong>. Qu'est-ce qui devrait changer pour qu'un alignement devienne possible ?</div><div class="rs-q-layer">Relier · ancrer la leçon dans le présent</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> Si les jeunes diplomates étaient formés par <strong>diversité comme force, collaboration comme devoir, harmonie comme direction partagée</strong> — à quoi ressemblerait l'environnement international dans 20 ans ?</div><div class="rs-q-layer">Imaginer · l'arc du temps long</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Là où j'en suis honnêtement</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">Ceci est un miroir, pas un test. Marquez où vous en êtes réellement maintenant.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarement</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Souvent</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">Face à un collègue ayant une approche culturelle très différente, mon premier réflexe est la curiosité plutôt que la frustration.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Dans les espaces multilatéraux, je crée activement de la place pour les voix moins audibles — pas seulement les plus fortes.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je sens que mes actions individuelles contribuent réellement à quelque chose de plus grand que la négociation immédiate.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je peux tenir à la fois mon mandat national et ma conviction personnelle en la coopération — sans conflit intérieur.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">En regardant ces réponses honnêtement — que remarquez-vous ?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">Une chose que je ferai différemment</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">Le plus petit changement réel vaut plus que la plus grande intention. Choisissez une chose — assez concrète pour être reconnaissable quand vous la faites.</div>
+      <div class="rs-action-prompt">Cette semaine, dans mon travail ou mes relations, je vais :</div>
+      <div class="rs-action-sub">Nommez le contexte, la personne, le moment.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      <div style="margin-top:16px"><div class="rs-action-prompt">Qu'est-ce qui pourrait rendre cela difficile ?</div><div class="rs-alines" style="margin-top:8px"><div class="rs-aline"></div><div class="rs-aline"></div></div></div>
+    </div>
+    <div class="rs-sec-label">Mon engagement</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">Un engagement nommé et écrit devient plus réel que celui gardé en silence.</div>
+      <div class="rs-commit-sentence"><em>Je crois que</em> <input class="rs-fill" type="text" placeholder="écrivez librement…"> <em>et pour cette raison,</em> <input class="rs-fill" type="text" placeholder="ce que cela implique pour vous personnellement…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Signature</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">Cette réflexion est personnelle et privée. Son but est simplement de laisser la leçon d'aujourd'hui s'ancrer dans votre propre façon de penser et de travailler.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Éducation à la Paix · Leçon 1 · Diplomate</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+<div class="rs-sheet " id="rs-en-1-youth" data-lang="en" data-lesson="1" data-audience="youth">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Lesson 01 · Peace Education</span><span class="rs-audience-tag">Youth &amp; Students</span></div>
+    <h2 class="rs-title">The Original State of <em>All Creation</em></h2>
+    <p class="rs-subtitle">Your personal reflection — carry this with you</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Name</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>School / Organisation</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">Something to hold</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">If nature can teach us engineering — bridges from spider webs, flight from birds — then it can also teach us peace.</div><div class="rs-anchor-src">Lesson 1 — Nature as teacher</div><div class="rs-anchor-note">Don't rush. Read it once. What does it make you think of from your own life?</div></div>
+    <div class="rs-sec-label">Reflection</div>
+    <div class="rs-refl-intro">No right answers here. Just your honest thoughts — noticing, then connecting, then imagining.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> Think of a group you belong to. Where do you see <strong>diversity making it stronger</strong>? Where does it create tension? What is the difference?</div><div class="rs-q-layer">Noticing</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Is there a person whose difference from you felt uncomfortable — but <strong>taught you something</strong>? What did you learn?</div><div class="rs-q-layer">Connecting</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> Harmony is "different abilities, united in direction." <strong>What direction</strong> do you want to move in — and who might you need beside you?</div><div class="rs-q-layer">Imagining</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Where I am honestly</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">Mark where you genuinely are. No one needs to see this but you.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarely</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Often</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">When someone is very different from me, I'm genuinely curious rather than pulling back.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I notice when my words or actions affect the atmosphere around me — positively or negatively.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I believe that what I do as an individual makes a real difference — even when things feel too large to change.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">What do you notice looking at these answers?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">One thing I will do differently</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">The best thing from a lesson is one real change — not a big promise, but something small enough to actually do.</div>
+      <div class="rs-action-prompt">This week, I will:</div>
+      <div class="rs-action-sub">Be specific — with who, where, in what moment.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      
+    </div>
+    <div class="rs-sec-label">My commitment</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">Write this in your own words. It doesn't need to sound impressive — it just needs to be true.</div>
+      <div class="rs-commit-sentence"><em>After today, I want to</em> <input class="rs-fill" type="text" placeholder="…"> <em>because</em> <input class="rs-fill" type="text" placeholder="…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Name</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">This is yours. You don't have to share it with anyone. Its purpose is to make the lesson real in your own life.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Peace Education · Lesson 1 · Youth</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+<div class="rs-sheet " id="rs-fr-1-youth" data-lang="fr" data-lesson="1" data-audience="youth">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Leçon 01 · Éducation à la Paix</span><span class="rs-audience-tag">Jeunes &amp; Étudiants</span></div>
+    <h2 class="rs-title">L'État Originel de <em>Toute Création</em></h2>
+    <p class="rs-subtitle">Ta réflexion personnelle — emporte-la avec toi</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Nom</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>École / Organisation</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">Quelque chose à garder en tête</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">Si la nature peut nous apprendre l'ingénierie — les ponts des toiles d'araignée, le vol des oiseaux — alors elle peut aussi nous apprendre la paix.</div><div class="rs-anchor-src">Leçon 1 — La nature comme enseignante</div><div class="rs-anchor-note">Ne te précipite pas. Lis-le une fois. À quoi cela te fait-il penser dans ta propre vie ?</div></div>
+    <div class="rs-sec-label">Réflexion</div>
+    <div class="rs-refl-intro">Aucune bonne réponse ici. Juste tes pensées honnêtes — observer, relier, imaginer.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> Pense à un groupe auquel tu appartiens. Où vois-tu la <strong>diversité le rendre plus fort</strong> ? Où crée-t-elle des tensions ? Quelle est la différence ?</div><div class="rs-q-layer">Observer</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Y a-t-il une personne dont la différence avec toi t'a semblé inconfortable — mais qui <strong>t'a appris quelque chose</strong> ? Qu'as-tu appris ?</div><div class="rs-q-layer">Relier</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> L'harmonie, c'est « des capacités différentes, unies dans une direction ». <strong>Dans quelle direction</strong> veux-tu avancer — et qui aurait besoin d'être à tes côtés ?</div><div class="rs-q-layer">Imaginer</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Là où j'en suis honnêtement</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">Marque où tu en es vraiment. Personne d'autre n'a besoin de voir ça.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarement</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Souvent</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">Quand quelqu'un est très différent de moi, ma curiosité prend le dessus plutôt que le repli.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je remarque quand mes mots ou mes actions influencent l'atmosphère autour de moi — positivement ou négativement.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je crois que ce que je fais en tant qu'individu fait vraiment une différence — même quand tout semble trop grand pour changer.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">Qu'est-ce que tu remarques en regardant ces réponses ?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">Une chose que je ferai différemment</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">Le mieux qu'une leçon peut apporter, c'est un vrai changement — pas une grande promesse, mais quelque chose d'assez petit pour être vraiment fait.</div>
+      <div class="rs-action-prompt">Cette semaine, je vais :</div>
+      <div class="rs-action-sub">Sois précis(e) — avec qui, où, dans quel moment.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      
+    </div>
+    <div class="rs-sec-label">Mon engagement</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">Écris ceci dans tes propres mots. Pas besoin que ça soit impressionnant — juste que ce soit vrai.</div>
+      <div class="rs-commit-sentence"><em>Après aujourd'hui, je veux</em> <input class="rs-fill" type="text" placeholder="…"> <em>parce que</em> <input class="rs-fill" type="text" placeholder="…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Nom</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">C'est à toi. Tu n'as pas à le partager avec qui que ce soit. Son but est simplement de rendre la leçon réelle dans ta propre vie.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Éducation à la Paix · Leçon 1 · Jeunes</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+<div class="rs-sheet " id="rs-en-2-diplomat" data-lang="en" data-lesson="2" data-audience="diplomat">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Lesson 02 · Peace Education</span><span class="rs-audience-tag">Diplomats &amp; Delegates</span></div>
+    <h2 class="rs-title">The Reason All Creation <em>Lives in Harmony</em></h2>
+    <p class="rs-subtitle">Personal reflection &amp; commitment — take this with you</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Name</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>Country / Mission</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">A moment to sit with</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">Everything is linked together, everything is inseparable. — Dalai Lama. A desert, an ocean, and a rainforest forming one living system. Nations, too, form one living system.</div><div class="rs-anchor-src">Lesson 2 — Connectivity &amp; Influence</div><div class="rs-anchor-note">Before anything else — read this and consider what it brings to mind from your own experience of international work.</div></div>
+    <div class="rs-sec-label">Reflection</div>
+    <div class="rs-refl-intro">These questions move from noticing your own value, to understanding your influence, to choosing how to use your role.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> When a person doesn't feel their own dignity, <strong>harmony breaks down</strong>. In diplomatic spaces, where do you see this pattern — in others, or sometimes in yourself?</div><div class="rs-q-layer">Noticing · value and dignity</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Think of a decision or action in your work whose <strong>ripple effect you did not foresee</strong>. What did that teach you about influence?</div><div class="rs-q-layer">Connecting · influence and responsibility</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> Where in your current work might you be <strong>assuming someone else will act</strong> — and what would change if you stepped forward instead?</div><div class="rs-q-layer">Imagining · role and duty</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Where I am honestly</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">This is a mirror, not an evaluation. Mark where you genuinely are.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarely</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Often</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">I am aware of the influence my tone and demeanour has on the people I work with.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I fulfil the responsibilities of my role with consistency — not only when observed or evaluated.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I genuinely recognise the worth of those whose views differ most from mine — not merely tolerating them.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I understand my unique contribution to peace — not only in title, but in how I carry myself day to day.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">What does this tell you about where to focus?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">One thing I will do differently</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">One person's responsibility became a turning point in the history of peace — Henry Dunant. What is one step that only you are placed to take?</div>
+      <div class="rs-action-prompt">This week, in my work or relationships, I will:</div>
+      <div class="rs-action-sub">Name the context, the person, the moment.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      <div style="margin-top:16px"><div class="rs-action-prompt">What might pull me back?</div><div class="rs-alines" style="margin-top:8px"><div class="rs-aline"></div><div class="rs-aline"></div></div></div>
+    </div>
+    <div class="rs-sec-label">My commitment</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">Name what you are willing to carry forward from today.</div>
+      <div class="rs-commit-sentence"><em>I recognise that</em> <input class="rs-fill" type="text" placeholder="something true about your value, influence, or duty…"> <em>and so I commit to</em> <input class="rs-fill" type="text" placeholder="one concrete change…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Signature</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">This reflection is personal. Its purpose is to let today's lesson become a living part of your work — not a concept, but a practice.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Peace Education · Lesson 2 · Diplomat</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+<div class="rs-sheet " id="rs-fr-2-diplomat" data-lang="fr" data-lesson="2" data-audience="diplomat">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Leçon 02 · Éducation à la Paix</span><span class="rs-audience-tag">Diplomates &amp; Délégués</span></div>
+    <h2 class="rs-title">La Raison pour laquelle Toute Création <em>Vit en Harmonie</em></h2>
+    <p class="rs-subtitle">Réflexion personnelle &amp; engagement — à emporter avec vous</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Nom</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>Pays / Mission</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">Un moment pour s'arrêter</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">Tout est lié, tout est inséparable. — Dalaï-Lama. Un désert, un océan et une forêt tropicale formant un seul système vivant. Les nations aussi forment un seul système vivant.</div><div class="rs-anchor-src">Leçon 2 — Connectivité &amp; Influence</div><div class="rs-anchor-note">Avant toute chose — lisez ceci et observez ce que cela évoque de votre propre expérience du travail international.</div></div>
+    <div class="rs-sec-label">Réflexion</div>
+    <div class="rs-refl-intro">Ces questions progressent de la reconnaissance de votre propre valeur, à la compréhension de votre influence, au choix de la façon d'exercer votre rôle.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> Quand une personne ne ressent pas sa propre dignité, <strong>l'harmonie se brise</strong>. Dans les espaces diplomatiques, où voyez-vous ce schéma — chez les autres, ou parfois en vous-même ?</div><div class="rs-q-layer">Observer · valeur et dignité</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Pensez à une décision ou une action dans votre travail dont vous <strong>n'aviez pas prévu les répercussions</strong>. Qu'est-ce que cela vous a appris sur l'influence ?</div><div class="rs-q-layer">Relier · influence et responsabilité</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> Dans votre travail actuel, où supposez-vous peut-être <strong>que quelqu'un d'autre agira</strong> — et qu'est-ce qui changerait si vous faisiez le premier pas ?</div><div class="rs-q-layer">Imaginer · rôle et devoir</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Là où j'en suis honnêtement</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">Ceci est un miroir, pas une évaluation. Marquez où vous en êtes vraiment.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarement</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Souvent</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">Je suis conscient(e) de l'influence que mon ton et mon attitude ont sur les personnes avec qui je travaille.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je remplis les responsabilités de mon rôle avec constance — pas seulement quand je suis observé(e).</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je reconnais sincèrement la valeur de ceux dont les vues diffèrent le plus des miennes — pas seulement les tolérer.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je comprends ma contribution unique à la paix — non seulement dans mon titre, mais dans la façon dont je me comporte au quotidien.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">Qu'est-ce que cela vous dit sur ce qui mérite attention ?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">Une chose que je ferai différemment</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">La responsabilité d'une seule personne a marqué un tournant dans l'histoire de la paix — Henry Dunant. Quelle est une étape que vous seul(e) êtes placé(e) pour faire ?</div>
+      <div class="rs-action-prompt">Cette semaine, dans mon travail ou mes relations, je vais :</div>
+      <div class="rs-action-sub">Nommez le contexte, la personne, le moment.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      <div style="margin-top:16px"><div class="rs-action-prompt">Qu'est-ce qui pourrait me retenir ?</div><div class="rs-alines" style="margin-top:8px"><div class="rs-aline"></div><div class="rs-aline"></div></div></div>
+    </div>
+    <div class="rs-sec-label">Mon engagement</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">Nommez ce que vous êtes prêt(e) à porter en avant à partir d'aujourd'hui.</div>
+      <div class="rs-commit-sentence"><em>Je reconnais que</em> <input class="rs-fill" type="text" placeholder="quelque chose de vrai sur votre valeur, influence ou devoir…"> <em>et donc je m'engage à</em> <input class="rs-fill" type="text" placeholder="un changement concret…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Signature</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">Cette réflexion est personnelle. Son but est de faire de la leçon d'aujourd'hui une partie vivante de votre travail — non pas un concept, mais une pratique.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Éducation à la Paix · Leçon 2 · Diplomate</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+<div class="rs-sheet " id="rs-en-3-diplomat" data-lang="en" data-lesson="3" data-audience="diplomat">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Lesson 03 · Peace Education</span><span class="rs-audience-tag">Diplomats &amp; Delegates</span></div>
+    <h2 class="rs-title">What Broke Peace in <em>the World of Humankind</em></h2>
+    <p class="rs-subtitle">Personal reflection &amp; commitment — take this with you</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Name</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>Country / Mission</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">A moment to sit with</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">Peace rarely collapses overnight. More often it erodes quietly — when shared rules lose authority, when responsibilities are neglected, and when personal interests begin to override the common good.</div><div class="rs-anchor-src">Lesson 3 — Order, Greed, and the Seeds of Peace</div><div class="rs-anchor-note">Read this slowly. Where have you seen this pattern — in the world, or closer to home?</div></div>
+    <div class="rs-sec-label">Reflection</div>
+    <div class="rs-refl-intro">These questions move from recognising the pattern, to examining it honestly within yourself, to choosing what kind of leader you want to be.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> The lesson describes subtle forms of greed — wanting to be right more than wanting to understand, protecting comfort instead of truth. Where do you recognise <strong>one of these in your own professional conduct</strong>?</div><div class="rs-q-layer">Noticing · honest self-examination</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Think of someone who <strong>chose love over domination</strong> in a moment when retaliation would have been understandable. What made that choice possible?</div><div class="rs-q-layer">Connecting · what love in action looks like</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> If peace education formed the character of every diplomat before they entered the field — <strong>what would be different</strong> in the negotiations, crises, and alliances you know?</div><div class="rs-q-layer">Imagining · the world that could be</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Where I am honestly</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">This lesson is the most personal of the three. Mark where you genuinely are — as a starting point, not a verdict.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarely</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Often</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">I am willing to question whether my position in a negotiation serves the common good — or only my national interest.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">When a situation tempts me toward domination or avoidance, I recognise it in the moment — not only in hindsight.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">I respond to difficult colleagues with genuine care for their dignity — not only with procedural courtesy.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">Is there a pattern here that deserves attention?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">One thing I will do differently</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">"Greed and arrogance kills myself and others. Be grateful and satisfied." — HWPL Chairman. Where could you choose gratitude or restraint — instead of something smaller?</div>
+      <div class="rs-action-prompt">This week, I will choose:</div>
+      <div class="rs-action-sub">Name the impulse you will restrain, and what you will offer instead.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      
+    </div>
+    <div class="rs-sec-label">My commitment</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">The most lasting peace begins not in a conference hall but in the heart of the people who walk into one.</div>
+      <div class="rs-commit-sentence"><em>I choose to let go of</em> <input class="rs-fill" type="text" placeholder="something that pulls against peace in you…"> <em>and to build</em> <input class="rs-fill" type="text" placeholder="what you will cultivate instead…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Signature</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">Peace begins quietly, within the human heart — but from there, it can shape the world. Let this reflection be honest.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Peace Education · Lesson 3 · Diplomat</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+<div class="rs-sheet " id="rs-fr-3-diplomat" data-lang="fr" data-lesson="3" data-audience="diplomat">
+  <div class="rs-hdr">
+    <div class="rs-hdr-top"><span class="rs-lesson-tag">Leçon 03 · Éducation à la Paix</span><span class="rs-audience-tag">Diplomates &amp; Délégués</span></div>
+    <h2 class="rs-title">Ce qui a Brisé la Paix dans <em>le Monde de l'Humanité</em></h2>
+    <p class="rs-subtitle">Réflexion personnelle &amp; engagement — à emporter avec vous</p>
+    <div class="rs-name-row">
+      <div class="rs-field"><label>Nom</label><div class="rs-field-line"></div></div>
+      <div class="rs-field"><label>Pays / Mission</label><div class="rs-field-line"></div></div>
+      <div class="rs-field" style="max-width:130px"><label>Date</label><div class="rs-field-line"></div></div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-sec-label">Un moment pour s'arrêter</div>
+    <div class="rs-anchor"><div class="rs-anchor-qmark">"</div><div class="rs-anchor-text">La paix s'effondre rarement du jour au lendemain. Elle s'érode le plus souvent silencieusement — quand les règles communes perdent leur autorité, quand les responsabilités sont négligées, et quand les intérêts personnels commencent à prendre le dessus sur le bien commun.</div><div class="rs-anchor-src">Leçon 3 — Ordre, Avidité et les Graines de la Paix</div><div class="rs-anchor-note">Lisez ceci lentement. Où avez-vous vu ce schéma — dans le monde, ou plus près de vous ?</div></div>
+    <div class="rs-sec-label">Réflexion</div>
+    <div class="rs-refl-intro">Ces questions progressent de la reconnaissance du schéma, à son examen honnête en vous-même, au choix du type de leader que vous voulez être.</div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">1</span> La leçon décrit des formes subtiles d'avidité — vouloir avoir raison plus que comprendre, protéger son confort plutôt que la vérité. Où reconnaissez-vous <strong>l'une de ces formes dans votre propre conduite professionnelle</strong> ?</div><div class="rs-q-layer">Observer · examen honnête de soi</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">2</span> Pensez à quelqu'un qui a <strong>choisi l'amour plutôt que la domination</strong> dans un moment où la représaille aurait été compréhensible. Qu'est-ce qui a rendu ce choix possible ?</div><div class="rs-q-layer">Relier · à quoi ressemble l'amour en action</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-q"><div class="rs-q-text"><span class="rs-q-num">3</span> Si l'éducation à la paix formait le caractère de chaque diplomate avant qu'il entre sur le terrain — <strong>qu'est-ce qui serait différent</strong> dans les négociations, crises et alliances que vous connaissez ?</div><div class="rs-q-layer">Imaginer · le monde qui pourrait être</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    <div class="rs-divider"></div>
+    <div class="rs-sec-label">Là où j'en suis honnêtement</div>
+    <div class="rs-self">
+      <div class="rs-self-intro">Cette leçon est la plus personnelle des trois. Marquez où vous en êtes vraiment — comme point de départ, non comme verdict.</div>
+      <div class="rs-scale-hdr"><div style="flex:1"></div><span class="rs-shdr-lbl">Rarement</span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl"></span><span class="rs-shdr-lbl">Souvent</span></div>
+      <div class="rs-scale-row"><div class="rs-si"><div class="rs-si-text">Je suis prêt(e) à questionner si ma position dans une négociation sert le bien commun — ou seulement mon intérêt national.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Quand une situation me tente vers la domination ou l'évitement, je le reconnais sur le moment — pas seulement après coup.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div><div class="rs-si"><div class="rs-si-text">Je réponds aux collègues difficiles avec un souci sincère de leur dignité — pas seulement avec une courtoisie formelle.</div><div class="rs-scale"><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div><div class="rs-circle" onclick="rsScale(this)"></div></div></div></div>
+      <div class="rs-self-note-row"><div class="rs-q-layer" style="margin-left:0;margin-bottom:7px">Y a-t-il un schéma ici qui mérite attention ?</div><div class="rs-lines"><div class="rs-line"></div><div class="rs-line"></div></div></div>
+    </div>
+    <div class="rs-sec-label">Une chose que je ferai différemment</div>
+    <div class="rs-action">
+      <div class="rs-action-intro">« L'avidité et l'arrogance me tuent et tuent les autres. Soyons reconnaissants et satisfaits. » — Président HWPL. Où pourriez-vous choisir la gratitude ou la retenue ?</div>
+      <div class="rs-action-prompt">Cette semaine, je choisis :</div>
+      <div class="rs-action-sub">Nommez l'impulsion que vous retiendrez, et ce que vous offrirez à la place.</div>
+      <div class="rs-alines"><div class="rs-aline"></div><div class="rs-aline"></div><div class="rs-aline"></div></div>
+      
+    </div>
+    <div class="rs-sec-label">Mon engagement</div>
+    <div class="rs-commit">
+      <div class="rs-commit-intro">La paix la plus durable ne commence pas dans une salle de conférence, mais dans le cœur des personnes qui y entrent.</div>
+      <div class="rs-commit-sentence"><em>Je choisis de lâcher</em> <input class="rs-fill" type="text" placeholder="ce qui s'oppose à la paix en vous…"> <em>et de cultiver</em> <input class="rs-fill" type="text" placeholder="ce que vous allez construire à la place…"></div>
+      <div class="rs-sign-row"><div class="rs-sign-field"><label>Signature</label><div class="rs-sign-line"></div></div><div class="rs-sign-field" style="max-width:150px"><label>Date</label><div class="rs-sign-line"></div></div></div>
+    </div>
+    <p class="rs-privacy-note">La paix commence silencieusement, dans le cœur humain — mais de là, elle peut façonner le monde. Que cette réflexion soit honnête.</p>
+  </div>
+  <div class="rs-footer"><span class="rs-footer-hwpl">HWPL</span><span class="rs-footer-note">Éducation à la Paix · Leçon 3 · Diplomate</span><span class="rs-footer-note">Heavenly Culture, World Peace, Restoration of Light</span></div>
+</div>
+  </div>
+  <footer class="page-footer"><div class="footer-logo-row"><div class="footer-divider"></div><div class="footer-emblem">HWPL</div><div class="footer-divider"></div></div><p class="footer-text">Heavenly Culture, World Peace, Restoration of Light</p></footer>
+</div>
+
+<script>
+var RS={lang:"en",audience:"diplomat",lesson:"1"};
+function rsSetLang(lang,btn){RS.lang=lang;document.querySelectorAll(".lang-btn").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");var lbs={en:{ey:"Personal Reflection",sb:"A personal document to take home after each lesson — with reflection questions, honest self-assessment, and one concrete commitment to action.",la:"Language",au:"Audience",le:"Lesson",pr:"Print",dp:"Diplomats",yo:"Youth"},fr:{ey:"Réflexion Personnelle",sb:"Un document personnel à emporter après chaque leçon — avec des questions de réflexion, une auto-évaluation honnête et un engagement concret à l'action.",la:"Langue",au:"Audience",le:"Leçon",pr:"Imprimer",dp:"Diplomates",yo:"Jeunes"}};var l=lbs[lang];["rs-pg-eyebrow","rs-lbl-lang","rs-lbl-audience","rs-lbl-lesson","rs-print-lbl","rs-aud-diplomat","rs-aud-youth","rs-pg-sub"].forEach(function(id,i){var el=document.getElementById(id);if(el)el.textContent=[l.ey,l.la,l.au,l.le,l.pr,l.dp,l.yo,l.sb][i];});rsShowSheet();}
+function rsSetAudience(aud,btn){RS.audience=aud;document.querySelectorAll("#reflection-sheets-page .rtb-btn:not(.lang-btn):not(.les-btn)").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");rsShowSheet();}
+function rsSetLesson(les,btn){RS.lesson=les;document.querySelectorAll(".les-btn").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");rsShowSheet();}
+function rsShowSheet(){document.querySelectorAll(".rs-sheet").forEach(function(s){s.classList.remove("rs-active")});var id="rs-"+RS.lang+"-"+RS.lesson+"-"+RS.audience;var el=document.getElementById(id);if(el){el.classList.add("rs-active");}else{var fb=document.getElementById("rs-en-"+RS.lesson+"-diplomat");if(fb)fb.classList.add("rs-active");}}
+function rsScale(circle){var row=circle.closest(".rs-scale");var circles=row.querySelectorAll(".rs-circle");var idx=Array.from(circles).indexOf(circle);circles.forEach(function(c,i){c.classList.toggle("rs-filled",i<=idx);});}
+function showReflectionSheets(){showPage("reflection-sheets-page","Overview");}
+</script>
